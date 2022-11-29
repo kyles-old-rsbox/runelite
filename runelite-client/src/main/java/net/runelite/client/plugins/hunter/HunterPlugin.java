@@ -148,7 +148,7 @@ public class HunterPlugin extends Plugin
 				{
 					// Net traps facing to the north and east must have their tile translated.
 					// As otherwise, the wrong tile is stored.
-					Direction trapOrientation = new Angle(gameObject.getOrientation()).getNearestDirection();
+					Direction trapOrientation = new Angle(gameObject.getNewOrientation()).getNearestDirection();
 					WorldPoint translatedTrapLocation = trapLocation;
 
 					switch (trapOrientation)

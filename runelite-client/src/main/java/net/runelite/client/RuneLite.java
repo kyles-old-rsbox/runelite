@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.math.BigInteger;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.nio.file.Files;
@@ -103,7 +104,7 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class RuneLite
 {
-	public static final String OPENOSRS = ".openosrs";
+	public static final String OPENOSRS = ".rsbox";
 	public static final File RUNELITE_DIR = new File(System.getProperty("user.home"), OPENOSRS);
 	public static final File CACHE_DIR = new File(RUNELITE_DIR, "cache");
 	public static final File PLUGINS_DIR = new File(RUNELITE_DIR, "plugin-hub");
@@ -386,6 +387,8 @@ public class RuneLite
 
 			applet.start();
 		}
+
+		client.setModulus(new BigInteger(RuneLiteProperties.getRsaModulus(), 16));
 
 		SplashScreen.stage(.57, null, "Loading configuration");
 

@@ -62,9 +62,6 @@ import net.runelite.client.RuneLite;
 import net.runelite.client.RuneLiteProperties;
 import net.runelite.client.RuntimeConfig;
 import net.runelite.client.RuntimeConfigLoader;
-import static net.runelite.client.rs.ClientUpdateCheckMode.AUTO;
-import static net.runelite.client.rs.ClientUpdateCheckMode.NONE;
-import static net.runelite.client.rs.ClientUpdateCheckMode.VANILLA;
 import net.runelite.client.ui.FatalErrorDialog;
 import net.runelite.client.ui.SplashScreen;
 import net.runelite.client.util.CountingInputStream;
@@ -74,6 +71,8 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import static net.runelite.client.rs.ClientUpdateCheckMode.*;
 
 @Slf4j
 @SuppressWarnings({"deprecation", "removal"})
@@ -131,6 +130,8 @@ public class ClientLoader implements Supplier<Applet>
 			SplashScreen.stage(0, null, "Fetching applet viewer config");
 			RSConfig config = downloadConfig();
 
+			config.setCodebase("http://"+RuneLiteProperties.getServerIp()+"/");
+
 			SplashScreen.stage(.05, null, "Waiting for other clients to start");
 
 			LOCK_FILE.getParentFile().mkdirs();
@@ -140,34 +141,10 @@ public class ClientLoader implements Supplier<Applet>
 				FileLock flock = lockfile.lock())
 			{
 				SplashScreen.stage(.15, null, "Downloading Old School RuneScape");
-				try
-				{
-					updateVanilla(config);
-				}
-				catch (IOException ex)
-				{
-					// try again with the fallback config and gamepack
-					if (javConfigUrl.equals(RuneLiteProperties.getJavConfig()) && !config.isFallback())
-					{
-						log.warn("Unable to download game client, attempting to use fallback config", ex);
-						config = downloadFallbackConfig();
-						updateVanilla(config);
-					}
-					else
-					{
-						throw ex;
-					}
-				}
-
-				if (!checkVanillaHash())
-				{
-					log.error("Injected client vanilla hash doesn't match, loading vanilla client.");
-					updateCheckMode = VANILLA;
-				}
 
 				SplashScreen.stage(.40, null, "Loading client");
 
-				File oprsInjected = new File(System.getProperty("user.home") + "/.openosrs/cache/injected-client.jar");
+				File oprsInjected = new File(System.getProperty("user.home") + "/.rsbox/cache/injected-client.jar");
 				if (updateCheckMode == AUTO)
 				{
 					writeInjectedClient(oprsInjected);
@@ -191,8 +168,7 @@ public class ClientLoader implements Supplier<Applet>
 		{
 			return e;
 		}
-		catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException
-			| VerificationException | SecurityException e)
+		catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException e)
 		{
 			log.error("Error loading RS!", e);
 
@@ -281,6 +257,7 @@ public class ClientLoader implements Supplier<Applet>
 
 	private void updateVanilla(RSConfig config) throws IOException, VerificationException
 	{
+
 		Certificate[][] jagexCertificateChains = {
 			loadCertificateChain("jagex.crt"),
 			loadCertificateChain("jagex2021.crt")
@@ -288,6 +265,7 @@ public class ClientLoader implements Supplier<Applet>
 
 		// Get the mtime of the first thing in the vanilla cache
 		// we check this against what the server gives us to let us skip downloading and patching the whole thing
+
 
 		try (FileChannel vanilla = FileChannel.open(VANILLA_CACHE.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE))
